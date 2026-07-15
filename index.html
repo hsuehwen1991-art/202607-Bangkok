@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>曼谷自由行行程表</title>
+    <title>遊泰人 第二彈</title>
     <style>
         /* 基礎全域設定 */
         body {
@@ -59,18 +59,39 @@
             overflow-y: auto;
         }
 
-        /* 日期標題 */
-        .date-header {
+        /* 🌟 日期標題與 Stay 區塊 */
+        .date-header-container {
             background: #2c3e50;
             color: white;
-            padding: 10px 15px;
-            border-radius: 5px;
+            padding: 15px;
+            border-radius: 8px;
             margin-top: 10px;
             margin-bottom: 20px;
             text-align: center;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
         }
 
-        /* 🌟 中置點線時間軸樣式 */
+        .date-header-container h2 {
+            margin: 0;
+            font-size: 1.4em;
+        }
+
+        /* 住宿資訊樣式 */
+        .stay-info {
+            background: rgba(255, 255, 255, 0.95);
+            color: #2c3e50;
+            padding: 8px 15px;
+            border-radius: 6px;
+            margin-top: 12px;
+            font-size: 0.95em;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+        }
+
+        /* 中置點線時間軸樣式 */
         .timeline {
             position: relative;
             width: 100%;
@@ -123,13 +144,8 @@
             box-shadow: 0 0 0 2px #ecf0f1;
         }
 
-        .left-col.has-item::before {
-            right: -10px; /* 剛好疊在中線上 */
-        }
-
-        .right-col.has-item::before {
-            left: -10px; /* 剛好疊在中線上 */
-        }
+        .left-col.has-item::before { right: -10px; }
+        .right-col.has-item::before { left: -10px; }
 
         /* 行程卡片 */
         .timeline-item {
@@ -167,16 +183,13 @@
             color: #289426;
         }
 
-        /* F欄 參加人員/分組 標籤 */
+        /* F欄 參加人員/分組 標籤預設樣式 (將由 JS 注入同色系動態樣式) */
         .group-badge {
             display: inline-block;
-            background: #fff3e0;
-            color: #e65100;
             padding: 4px 10px;
             border-radius: 16px;
             font-size: 0.85em;
             font-weight: bold;
-            border: 1px solid #ffe0b2;
         }
 
         /* 餐飲行程可點擊的樣式 */
@@ -240,43 +253,20 @@
 
         /* 行動裝置響應式設定 (Mobile) */
         @media (max-width: 768px) {
-            .layout-container {
-                flex-direction: column;
-            }
-            .left-panel, .right-panel {
-                width: 100%;
-                height: auto;
-                position: relative;
-                border-left: none;
-            }
-            .right-panel {
-                border-top: 2px solid #e0e0e0;
-            }
+            .layout-container { flex-direction: column; }
+            .left-panel, .right-panel { width: 100%; height: auto; position: relative; border-left: none; }
+            .right-panel { border-top: 2px solid #e0e0e0; }
             
             /* 將時間軸靠左 */
-            .timeline::after {
-                left: 20px;
-            }
+            .timeline::after { left: 20px; }
             
-            .timeline-row {
-                flex-direction: column;
-                margin-bottom: 0;
-            }
+            .timeline-row { flex-direction: column; margin-bottom: 0; }
+            .timeline-column { width: 100%; padding: 0 0 20px 45px; }
             
-            .timeline-column {
-                width: 100%;
-                padding: 0 0 20px 45px; 
-            }
-            
-            /* 手機版：原本預設放右側的(第一順位)放上面，左側放下面 */
             .left-col { order: 2; }
             .right-col { order: 1; }
             
-            /* 修正圓點在手機版的位置 */
-            .timeline-column.has-item::before {
-                left: 11px !important;
-                right: auto !important;
-            }
+            .timeline-column.has-item::before { left: 11px !important; right: auto !important; }
         }
     </style>
 </head>
@@ -296,26 +286,50 @@
         <h2 id="restaurant-panel-title">🍽️ 餐廳詳細資訊</h2>
         <p id="restaurant-instruction" style="color:#7f8c8d;">請點擊左側餐飲行程以檢視詳細資訊。</p>
         <div id="restaurant-container">
-            <div class="restaurant-block empty">區塊 1 </div>
+            <!-- 預設擴展為 5 個區塊 -->
+            <div class="restaurant-block empty">區塊 1</div>
             <div class="restaurant-block empty">區塊 2</div>
             <div class="restaurant-block empty">區塊 3</div>
+            <div class="restaurant-block empty">區塊 4</div>
+            <div class="restaurant-block empty">區塊 5</div>
         </div>
     </div>
 </div>
 
 <script>
     // ==========================================
-    // 💡 雲端資料同步區塊 (已替換為曼谷行程網址)
+    // 💡 雲端資料同步區塊
     // ==========================================
     const itineraryCsvUrl = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vSI18eKLo_70lx1CZj6NDqVb7EtT561KD-x9JFcsk9fh_zcOaPFwKSgssIgQwrGkhqzGuGmwPl5lfvV/pub?gid=0&single=true&output=csv';
     const restaurantCsvUrl = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vSI18eKLo_70lx1CZj6NDqVb7EtT561KD-x9JFcsk9fh_zcOaPFwKSgssIgQwrGkhqzGuGmwPl5lfvV/pub?gid=1473476154&single=true&output=csv';
-    // ==========================================
 
     let itineraryData = [];
     let restaurantData = [];
 
     // ==========================================
-    // 🔧 CSV 解析器 (終極防呆強化版)
+    // 🎨 同色系成員顏色指派器 (暖橘大地色系漸層)
+    // ==========================================
+    const warmPalette = [
+        { bg: '#fff3e0', color: '#e65100', border: '#ffe0b2' }, // 經典橘
+        { bg: '#fbe9e7', color: '#d84315', border: '#ffccbc' }, // 深磚紅
+        { bg: '#fff8e1', color: '#f57f17', border: '#ffecb3' }, // 琥珀色
+        { bg: '#efebe9', color: '#5d4037', border: '#d7ccc8' }, // 大地棕
+        { bg: '#fffde7', color: '#fbc02d', border: '#fff59d' }  // 暖黃色
+    ];
+    let groupColorMap = {};
+    let groupColorIndex = 0;
+
+    function getGroupStyle(groupName) {
+        if (!groupColorMap[groupName]) {
+            groupColorMap[groupName] = warmPalette[groupColorIndex % warmPalette.length];
+            groupColorIndex++;
+        }
+        const style = groupColorMap[groupName];
+        return `background-color: ${style.bg}; color: ${style.color}; border: 1px solid ${style.border};`;
+    }
+
+    // ==========================================
+    // 🔧 CSV 解析器 
     // ==========================================
     function parseCSVToObjects(text) {
         let p = '', row = [''], ret = [row], i = 0, r = 0, s = !0, l;
@@ -352,7 +366,7 @@
     }
 
     // ==========================================
-    // 🚀 執行抓取 (直接 Fetch，原生支援 CORS)
+    // 🚀 執行抓取 
     // ==========================================
     async function loadDataAndRender() {
         const container = document.getElementById('itinerary-container');
@@ -369,11 +383,8 @@
 
             if (!res1.ok || !res2.ok) throw new Error("Fetch failed");
 
-            const itineraryText = await res1.text();
-            const restaurantText = await res2.text();
-
-            itineraryData = parseCSVToObjects(itineraryText);
-            restaurantData = parseCSVToObjects(restaurantText);
+            itineraryData = parseCSVToObjects(await res1.text());
+            restaurantData = parseCSVToObjects(await res2.text());
 
             renderItinerary();
 
@@ -389,30 +400,32 @@
     }
 
     // ==========================================
-    // 🎨 渲染單一行程卡片 (加入F欄判斷)
+    // 🎨 渲染單一行程卡片 
     // ==========================================
     function createItemHTML(item, currentDate) {
         const isMeal = item['餐飲標記'] === 'V' || item['餐飲標記'] === 'v';
         const mealClass = isMeal ? 'is-meal' : '';
         const clickEvent = isMeal ? `onclick="showRestaurants('${currentDate}', '${item['行程內容']}')"` : '';
-        const timeClass = (item['時間'] || '').toLowerCase() === 'free' ? 'time-free' : '';
+        const timeValue = item['時間'] || '';
+        const timeClass = timeValue.toLowerCase() === 'free' ? 'time-free' : '';
         
         const routeHTML = item['起訖點'] && item['起訖點'] !== '-' 
             ? `<div class="route-info">${item['起訖點'].replace(/\n/g, '<br>')}</div>` 
             : '';
         
-        // 智慧抓取 F 欄 (第 6 個標題)，並產生分組標籤
+        // 智慧抓取 F 欄並套用同色系漸層樣式
         const keys = Object.keys(item);
         const fColKey = keys.length >= 6 ? keys[5] : null; 
         let groupText = '';
         if (fColKey && item[fColKey] && item[fColKey] !== '-' && item[fColKey].trim() !== '') {
-            groupText = `<div class="group-badge">👥 ${item[fColKey]}</div>`;
+            const groupStyle = getGroupStyle(item[fColKey]);
+            groupText = `<div class="group-badge" style="${groupStyle}">👥 ${item[fColKey]}</div>`;
         }
 
         return `
             <div class="timeline-item ${mealClass}" ${clickEvent}>
                 <div class="tags-row">
-                    <div class="time-badge ${timeClass}">🕒 ${item['時間']}</div>
+                    <div class="time-badge ${timeClass}">🕒 ${timeValue}</div>
                     ${groupText}
                 </div>
                 <div class="content-title">${item['行程內容']}</div>
@@ -424,13 +437,12 @@
     }
 
     // ==========================================
-    // 🎨 渲染行程總表 (左側 - 雙軌時間軸邏輯)
+    // 🎨 渲染行程總表 (左側 - 進階雙軌邏輯)
     // ==========================================
     function renderItinerary() {
         const container = document.getElementById('itinerary-container');
         let timelineHTML = '';
 
-        // 先依日期分組
         const dateGroups = {};
         itineraryData.forEach(item => {
             const date = item['日期'];
@@ -438,25 +450,47 @@
             dateGroups[date].push(item);
         });
 
-        // 依序渲染每一天的行程
         for (const [date, items] of Object.entries(dateGroups)) {
-            timelineHTML += `<h2 class="date-header">📅 ${date}</h2>`;
+            // 過濾分離出 Stay 與 一般行程
+            const stays = items.filter(item => (item['時間'] || '').toLowerCase() === 'stay');
+            const timelines = items.filter(item => (item['時間'] || '').toLowerCase() !== 'stay');
+
+            // 繪製日期與 Stay 標題區塊
+            timelineHTML += `<div class="date-header-container">`;
+            timelineHTML += `<h2>📅 ${date}</h2>`;
+            
+            stays.forEach(stay => {
+                const keys = Object.keys(stay);
+                const fColKey = keys.length >= 6 ? keys[5] : null; 
+                let groupText = '';
+                if (fColKey && stay[fColKey] && stay[fColKey] !== '-' && stay[fColKey].trim() !== '') {
+                    const groupStyle = getGroupStyle(stay[fColKey]);
+                    groupText = `<span class="group-badge" style="${groupStyle}">👥 ${stay[fColKey]}</span>`;
+                }
+                timelineHTML += `<div class="stay-info">🏨 <strong>${stay['行程內容']}</strong> ${groupText}</div>`;
+            });
+            timelineHTML += `</div>`;
+
+            // 繪製時間軸
             timelineHTML += `<div class="timeline">`;
             
             let i = 0;
-            while (i < items.length) {
-                let item = items[i];
-                let nextItem = items[i+1];
+            while (i < timelines.length) {
+                let item = timelines[i];
+                let nextItem = timelines[i+1];
                 
-                let rightItem = item; // 預設放右側
+                let isFree = (item['時間'] || '').toLowerCase() === 'free';
+                let isNextSameTime = nextItem && nextItem['時間'] === item['時間'] && item['時間'].trim() !== '';
+
+                let rightItem = item; 
                 let leftItem = null;
 
-                // 判斷下一個行程是否與當前行程「時間相同」，如果是則排在左側 (避免空字串時間誤判)
-                if (nextItem && nextItem['時間'] === item['時間'] && item['時間'].trim() !== '') {
+                // 如果「不是Free」且「下一個時間相同」，才並排左右顯示
+                if (!isFree && isNextSameTime) {
                     leftItem = nextItem;
-                    i += 2; // 一次消耗兩個行程
+                    i += 2; 
                 } else {
-                    i += 1; // 一次消耗一個行程
+                    i += 1; // 單一行程或Free行程，獨立佔用一列放右側(Top-down排列)
                 }
 
                 timelineHTML += `
@@ -477,7 +511,7 @@
     }
 
     // ==========================================
-    // 🍽️ 渲染餐廳列表 (右側)
+    // 🍽️ 渲染餐廳列表 (擴充為5個區塊)
     // ==========================================
     function showRestaurants(date, mealTitle) {
         let mealType = mealTitle.includes('早') ? '早餐' : 
@@ -504,12 +538,12 @@
             return rDate === date.trim() && rMeal === mealType.trim();
         });
 
-        for (let i = 0; i < 3; i++) {
+        // 修改為跑 5 次迴圈
+        for (let i = 0; i < 5; i++) {
             if (matched[i] && matched[i]['餐廳名稱']) {
                 const rest = matched[i];
                 const mapSearchTerm = `${rest['餐廳名稱']} ${rest['鄰近車站'] || ''}`.trim();
                 const mapQuery = encodeURIComponent(mapSearchTerm);
-                // 修正原先地圖變數格式
                 const iframeSrc = `https://maps.google.com/maps?q=${mapQuery}&hl=zh-TW&z=15&output=embed`;
                 
                 let statusBadgeHTML = '-';
@@ -547,15 +581,7 @@
     }
 
     window.onload = () => {
-        if(itineraryCsvUrl.includes('請貼上') || restaurantCsvUrl.includes('請貼上')) {
-             const container = document.getElementById('itinerary-container');
-             container.innerHTML = `<div style="background-color: #fff3cd; padding: 15px; border-radius: 8px; margin: 20px; border-left: 5px solid #ffc107;">
-                    <h3 style="color: #856404; margin-top: 0;">⏳ 請先設定 CSV 網址</h3>
-                    <p style="color: #856404;">您還沒有將程式碼中的網址替換為您的「發布到網路」網址喔！</p>
-                </div>`;
-        } else {
-             loadDataAndRender();
-        }
+        loadDataAndRender();
     };
 </script>
 

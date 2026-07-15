@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>遊泰人 第二彈</title>
+    <title>曼谷自由行行程表</title>
     <style>
         /* 基礎全域設定 */
         body {
@@ -59,34 +59,42 @@
             overflow-y: auto;
         }
 
-        /* 🌟 日期標題與 Stay 區塊 */
+        /* 🌟 日期標題與 Stay 區塊 (左右分流) */
         .date-header-container {
             background: #2c3e50;
             color: white;
-            padding: 15px;
+            padding: 15px 25px;
             border-radius: 8px;
             margin-top: 10px;
             margin-bottom: 20px;
-            text-align: center;
             box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+            display: flex;
+            justify-content: space-between; /* 讓日期靠左、住宿靠右 */
+            align-items: center; /* 垂直置中對齊 */
         }
 
-        .date-header-container h2 {
+        .date-title h2 {
             margin: 0;
             font-size: 1.4em;
         }
 
-        /* 住宿資訊樣式 */
+        /* 住宿區塊的容器 */
+        .stay-wrapper {
+            display: flex;
+            flex-direction: column; /* 強制上下疊放 */
+            align-items: flex-end; /* 內部元素靠右對齊 */
+            gap: 10px; /* 多個住宿之間的上下間隔 */
+        }
+
+        /* 住宿資訊單體樣式 */
         .stay-info {
             background: rgba(255, 255, 255, 0.95);
             color: #2c3e50;
             padding: 8px 15px;
             border-radius: 6px;
-            margin-top: 12px;
             font-size: 0.95em;
             display: inline-flex;
             align-items: center;
-            justify-content: center;
             gap: 10px;
             box-shadow: 0 2px 4px rgba(0,0,0,0.05);
         }
@@ -257,6 +265,10 @@
             .left-panel, .right-panel { width: 100%; height: auto; position: relative; border-left: none; }
             .right-panel { border-top: 2px solid #e0e0e0; }
             
+            /* 手機版：日期與住宿資訊切換為上下疊放，避免畫面太擠 */
+            .date-header-container { flex-direction: column; gap: 12px; }
+            .stay-wrapper { align-items: center; width: 100%; }
+
             /* 將時間軸靠左 */
             .timeline::after { left: 20px; }
             
@@ -286,7 +298,6 @@
         <h2 id="restaurant-panel-title">🍽️ 餐廳詳細資訊</h2>
         <p id="restaurant-instruction" style="color:#7f8c8d;">請點擊左側餐飲行程以檢視詳細資訊。</p>
         <div id="restaurant-container">
-            <!-- 預設擴展為 5 個區塊 -->
             <div class="restaurant-block empty">區塊 1</div>
             <div class="restaurant-block empty">區塊 2</div>
             <div class="restaurant-block empty">區塊 3</div>
@@ -455,20 +466,25 @@
             const stays = items.filter(item => (item['時間'] || '').toLowerCase() === 'stay');
             const timelines = items.filter(item => (item['時間'] || '').toLowerCase() !== 'stay');
 
-            // 繪製日期與 Stay 標題區塊
+            // 繪製日期與 Stay 標題區塊 (左右分流結構)
             timelineHTML += `<div class="date-header-container">`;
-            timelineHTML += `<h2>📅 ${date}</h2>`;
+            timelineHTML += `<div class="date-title"><h2>📅 ${date}</h2></div>`;
             
-            stays.forEach(stay => {
-                const keys = Object.keys(stay);
-                const fColKey = keys.length >= 6 ? keys[5] : null; 
-                let groupText = '';
-                if (fColKey && stay[fColKey] && stay[fColKey] !== '-' && stay[fColKey].trim() !== '') {
-                    const groupStyle = getGroupStyle(stay[fColKey]);
-                    groupText = `<span class="group-badge" style="${groupStyle}">👥 ${stay[fColKey]}</span>`;
-                }
-                timelineHTML += `<div class="stay-info">🏨 <strong>${stay['行程內容']}</strong> ${groupText}</div>`;
-            });
+            if (stays.length > 0) {
+                timelineHTML += `<div class="stay-wrapper">`;
+                stays.forEach(stay => {
+                    const keys = Object.keys(stay);
+                    const fColKey = keys.length >= 6 ? keys[5] : null; 
+                    let groupText = '';
+                    if (fColKey && stay[fColKey] && stay[fColKey] !== '-' && stay[fColKey].trim() !== '') {
+                        const groupStyle = getGroupStyle(stay[fColKey]);
+                        groupText = `<span class="group-badge" style="${groupStyle}">👥 ${stay[fColKey]}</span>`;
+                    }
+                    timelineHTML += `<div class="stay-info">🏨 <strong>${stay['行程內容']}</strong> ${groupText}</div>`;
+                });
+                timelineHTML += `</div>`;
+            }
+            
             timelineHTML += `</div>`;
 
             // 繪製時間軸
@@ -538,7 +554,7 @@
             return rDate === date.trim() && rMeal === mealType.trim();
         });
 
-        // 修改為跑 5 次迴圈
+        // 跑 5 次迴圈
         for (let i = 0; i < 5; i++) {
             if (matched[i] && matched[i]['餐廳名稱']) {
                 const rest = matched[i];
